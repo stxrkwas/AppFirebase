@@ -1,6 +1,5 @@
 package com.example.appfirebase
 
-import android.content.ContentValues
 import android.content.ContentValues.TAG
 import android.os.Bundle
 import android.util.Log
@@ -23,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -82,9 +82,11 @@ fun App(db: FirebaseFirestore) {
         //Linha 2
         Row(
             Modifier.fillMaxWidth(),
-            Arrangement.Center
+            Arrangement.Center,
         ){
-            Text(text = "App Firebase Firestore")
+            Text(
+                text = "App Firebase Firestore",
+                style = MaterialTheme.typography.headlineMedium)
         }
 
         //Linha 3
@@ -98,14 +100,21 @@ fun App(db: FirebaseFirestore) {
         Row(Modifier.fillMaxWidth()){
 
             //Coluna 1
-            Column(Modifier.fillMaxWidth(0.3f)){
+            Column(
+                Modifier
+                    .fillMaxWidth(0.3f)
+                    .padding(25.dp)){
 
                 //Texto
-                Text(text= "Nome:")
+                Text(
+                    text= "Nome:",
+                    modifier = Modifier.align(Alignment.CenterHorizontally))
             }
 
             // Coluna 2
-            Column(){
+            Column(
+                Modifier.padding(5.dp)
+            ){
 
                 //Campo de texto
                 TextField(
@@ -121,18 +130,25 @@ fun App(db: FirebaseFirestore) {
         Row(Modifier.fillMaxWidth()){
 
             //Coluna 1
-            Column(Modifier.fillMaxWidth(0.3f)){
+            Column(
+                Modifier
+                    .fillMaxWidth(0.3f)
+                    .padding(25.dp)){
 
                 //Texto
-                Text(text = "Telefone")
+                Text(
+                    text = "Telefone:",
+                    modifier = Modifier.align(Alignment.CenterHorizontally))
             }
 
             //Coluna 2
-            Column(){
+            Column(
+                Modifier.padding(5.dp)
+            ){
                 TextField(
                     value = telefone,
                     onValueChange = {telefone = it},
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(0.92f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
                 )
             }
@@ -152,7 +168,8 @@ fun App(db: FirebaseFirestore) {
         ){
             
             //Botão
-            Button(onClick = {
+            Button(
+                onClick = {
 
                 //Variável city
                 val city = hashMapOf(
