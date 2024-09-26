@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -171,20 +173,76 @@ fun App(db: FirebaseFirestore) {
             Button(
                 onClick = {
 
-                //Variável city
-                val city = hashMapOf(
+                //Variável pessoas - 1ª modificação do código
+                val pessoas = hashMapOf(
                     "nome" to nome,
                     "telefone" to telefone
                 )
 
-                db.collection("Clientes").document("PrimeiroCliente")
-                    .set(city)
-                    .addOnSuccessListener { Log.d(TAG, "DocumentSnapshot succesfully written!") }
+                // 2ª modificação do código
+                db.collection("Clientes").add(pessoas)
+                    .addOnSuccessListener{ documentReference ->
+                        Log.d(TAG, "DocumentSnapshot written with ID: ${documentReference.id}") }
+                // Fim da modificação do trecho
                     .addOnFailureListener { e -> Log.w(TAG, "Error writing document", e) }
             }) {
 
                 //Título do botão
                 Text(text = "Cadastrar")
+            }
+        }
+
+        //Linha 8
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+        ){}
+
+        //Linha 9
+        Row(
+            Modifier.fillMaxWidth()
+        ){
+            Column(
+                Modifier.fillMaxWidth(0.3f)
+            ){
+                Text(text = "Nome: ")
+            }
+        }
+
+        //Linha 10
+        Row(
+            Modifier.fillMaxWidth()
+        ){
+            Column() {
+                val clientes = mutableListOf<HashMap<String, String>>()
+                db.collection("Clientes").get()
+                    .addOnSuccessListener { documents ->
+                        for (document in documents) {
+                            val lista = hashMapOf(
+                                "nome" to "${document.data.get("nome")}",
+                                "telefone" to "${document.data.get("telefone")}"
+                            )
+                            clientes.add(lista)
+                        }
+                    }
+
+                    .addOnFailureListener { exception ->
+                        Log.w(TAG, "Error getting documents.", exception)
+                    }
+
+                LazyColumn(modifier = Modifier.fillMaxWidth()){
+                    items(clientes){ cliente ->
+                        Row(modifier = Modifier.fillMaxWidth()){
+                            Column(modifier = Modifier.weight(0.5f)){
+                                Text(text = cliente["nome"] ?: "--")
+                            }
+                            Column(modifier = Modifier.weight(0.5f)){
+                                Text(text = cliente["telefone"] ?: "--")
+                            }
+                        }
+                    }
+                }
             }
         }
     }
