@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role.Companion.Image
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -114,6 +115,7 @@ fun App(db: FirebaseFirestore, modifier: Modifier = Modifier) {
             Image(
                 painter = painterResource(id = R.drawable.foto_perfil)
             )
+            Image()
         }
         //Linha 4 - campo de texto 'nome'
         Row(Modifier.fillMaxWidth()
