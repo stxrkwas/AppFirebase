@@ -14,21 +14,26 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role.Companion.Image
 import androidx.compose.ui.text.input.KeyboardType
@@ -45,7 +50,7 @@ import com.google.firebase.firestore.firestore
 
 class MainActivity : ComponentActivity() {
 
-    val db = Firebase.firestore
+    private val db = Firebase.firestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,12 +66,25 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+}
 
-    companion object {
-        private const val TAG = "AppFirebase" // Define a custom tag for logging
+@Composable
+fun Greeting(name: String, modifier: Modifier = Modifier) {
+    Text(
+        text = "Hello $name!",
+        modifier = modifier
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun GreetingPreview(){
+    AppFirebaseTheme {
+        Greeting("Android")
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun App(db: FirebaseFirestore, modifier: Modifier = Modifier) {
 
@@ -78,6 +96,10 @@ fun App(db: FirebaseFirestore, modifier: Modifier = Modifier) {
     //Variável telefone
     var telefone by remember {
         mutableStateOf("")
+    }
+
+    val clientes = remember{
+        mutableStateListOf<HashMap<String, String>>()
     }
 
     //Coluna:
@@ -93,14 +115,9 @@ fun App(db: FirebaseFirestore, modifier: Modifier = Modifier) {
         //Linha 2
         Row(
             Modifier.fillMaxWidth(),
-            Arrangement.Center,
+            horizontalArrangement = Arrangement.Center,
         ){
-            Column(Modifier.fillMaxWidth()){
-                Text(
-                    text = "App Firebase Firestore",
-                    fontWeight = 30.sp
-                )
-            }
+            Text(text = "App Firebase Firestore")
 
         }
 
@@ -111,12 +128,19 @@ fun App(db: FirebaseFirestore, modifier: Modifier = Modifier) {
                 .padding(20.dp)
         ){}
 
-        Box(modifier){
+        // Caixa que contém a foto de perfil
+        Box(Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center){
+
+        // Imagem
             Image(
-                painter = painterResource(id = R.drawable.foto_perfil)
+                painter = painterResource(id = R.drawable.foto_perfil),
+                contentDescription = "Maria Luiza Passo Silva",
+                modifier = Modifier.size(200.dp)
+                    .clip(CircleShape)
             )
-            Image()
         }
+
         //Linha 4 - campo de texto 'nome'
         Row(Modifier.fillMaxWidth()
             .padding(top = 15.dp)){
@@ -203,10 +227,30 @@ fun App(db: FirebaseFirestore, modifier: Modifier = Modifier) {
                 // 2ª modificação do código
                 db.collection("Clientes").add(pessoas)
                     .addOnSuccessListener{ documentReference ->
-                        Log.d(TAG, "DocumentSnapshot written with ID: ${documentReference.id}") }
+                        Log.d(TAG, "DocumentSnapshot written with ID: ${documentReference.id}")
+
+                    Log.d(TAG, "Último Cliente cadastrado: $clientes")
+
+                    db.collection("Clientes")
+                        .get()
+                        .addOnSuccessListener { result ->
+                            for (document in result) {
+                                val lista = hashMapOf(
+                                    "nome" to (document.getString("nome")?: "--"),
+                                    "telefone" to (document.getString("telefone")?: "--")
+                                )
+                                clientes.add(lista)
+                                Log.i(TAG, "Lista: $lista")
+                            }
+                        }
+
+                        .addOnFailureListener { exception ->
+                            Log.w(TAG, "Error getting documents.", exception)
+                        }
+                    }
                     // Fim da modificação do trecho
 
-                    .addOnFailureListener { e -> Log.w(TAG, "Error writing document", e) }
+                    .addOnFailureListener { e -> Log.w(TAG, "Error adding document", e) }
             }) {
 
                 //Título do botão
@@ -221,47 +265,27 @@ fun App(db: FirebaseFirestore, modifier: Modifier = Modifier) {
                 .padding(20.dp)
         ){}
 
-        //Linha 9 - Exibição dos dados cadastrados
-        Row(
-            Modifier.fillMaxWidth()
-        ){
-            Column(
-                Modifier.fillMaxWidth(0.5f)
-                    .padding(10.dp)
-            ){
-                Text(text = "Nome: ")
-            }
-            Column(
-                Modifier.fillMaxWidth(0.5f)
-                    .padding(10.dp)
-            ){
-                Text(text = "Telefone: ")
-            }
-        }
-
         //Linha 10
         Row(
             Modifier.fillMaxWidth()
         ){
-            Column() {
-                val clientes = mutableListOf<HashMap<String, String>>()
-                db.collection("Clientes")
-                    .get()
-                    .addOnSuccessListener { documents ->
-                        for (document in documents) {
-                            val lista = hashMapOf(
-                                "nome" to "${document.data.get("nome")}",
-                                "telefone" to "${document.data.get("telefone")}"
-                            )
-                            clientes.add(lista)
+            Column(Modifier.fillMaxWidth()) {
+                LazyColumn(modifier = Modifier.fillMaxWidth()){
+                    item{
+                        //Linha 9 - Exibição dos dados cadastrados
+                        Row(Modifier.fillMaxWidth()){
+                            Column(Modifier.fillMaxWidth(0.5f)
+                                .padding(10.dp)){
+                                Text(text = "Nome: ")
+                            }
+                            Column(Modifier.fillMaxWidth(0.5f)
+                                .padding(10.dp)
+                            ){
+                                Text(text = "Telefone: ")
+                            }
                         }
                     }
 
-                    .addOnFailureListener { exception ->
-                        Log.w(TAG, "Error getting documents.", exception)
-                    }
-
-                LazyColumn(modifier = Modifier.fillMaxWidth()){
                     items(clientes){ cliente ->
                         Row(modifier = Modifier.fillMaxWidth()){
                             Column(modifier = Modifier.weight(0.5f)){
@@ -274,15 +298,10 @@ fun App(db: FirebaseFirestore, modifier: Modifier = Modifier) {
                     }
                 }
             }
+
+
         }
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    AppFirebaseTheme {
-        App(db = FirebaseFirestore.getInstance())
-    }
-}
 
